@@ -11,7 +11,8 @@ pip install -r requrements.txt
 ```
 ___
 # Usage
-* Place the PDF file you want to parse in the data_to_parse directory.
+* Place the PDF file you want to parse in the `data_to_parse` directory.
+* There must be an Excel file in the `results` directory.
 * Make sure you have the necessary libraries installed.
 * Run the script:
 ```bash
