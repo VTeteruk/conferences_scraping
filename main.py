@@ -1,8 +1,15 @@
 import logging
+import os
 import re
 import PyPDF2
 from openpyxl.reader.excel import load_workbook
-from utilities import delete_numbers_from_text, clean_text_for_names
+from utilities import (
+    delete_numbers_from_text,
+    clean_text_for_names,
+    REPLACEMENTS,
+    NUM_PAGES_TO_SKIP,
+    START_PAGE
+)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +35,7 @@ class BookScraper:
 
         # Set the end page if not specified
         if end_page is None:
-            end_page = len(pdf_reader.pages) - 4  # Last 4 pages are useless
+            end_page = len(pdf_reader.pages) - NUM_PAGES_TO_SKIP
 
         # Extract text from specified pages and join it into a single string
         return " ".join(
@@ -38,19 +45,9 @@ class BookScraper:
     @staticmethod
     def clean_text(text: str) -> str:
         # Clean the text by replacing specific patterns with spaces or newline characters
-        return (
-            text.replace("\t", " ")
-            .replace("\n-", "")
-            .replace("5th World Psoriasis & Psoriatic Arthritis Conference 2018", "")
-            .replace("Acta Derm Venereol 2018", "")
-            .replace("Poster abstracts", "")
-            .replace("www.medicaljournals.se/acta", "")
-            .replace(".P", ".\nP")
-            .replace("Background", "Introduction")
-            .replace("\xad", " ")
-            .replace("Introduction", "\nIntroduction")
-            .replace("1,2", "\n")
-        )
+        for pattern, replacement in REPLACEMENTS:
+            text = text.replace(pattern, replacement)
+        return text
 
     @staticmethod
     def divide_text_by_session_name(text: str) -> list[str]:
@@ -155,6 +152,7 @@ class BookScraper:
                     delete_numbers_from_text(affiliation),
                     delete_numbers_from_text(location),
                     session,
+                    topic,
                     presentation,
                 ),
             )
@@ -179,10 +177,13 @@ class BookScraper:
 
 
 if __name__ == "__main__":
-    pdf_file_to_parse = "data_to_parse/Book.pdf"
-    excel_file_to_fill = (
-        "results/Data Entry - 5th World Psoriasis & "
-        "Psoriatic Arthritis Conference 2018 - Case format (2).xlsx"
+    pdf_file_to_parse = os.path.join("data_to_parse", "Book.pdf")
+    excel_file_to_fill = os.path.join(
+        "results",
+        (
+            "Data Entry - 5th World Psoriasis & "
+            "Psoriatic Arthritis Conference 2018 - Case format (2).xlsx"
+        )
     )
 
     # Create an instance of the BookScraper class
@@ -191,7 +192,7 @@ if __name__ == "__main__":
     )
 
     # Extract text from the PDF
-    pdf_text = book_scraper.extract_text_from_pdf(start_page=43)
+    pdf_text = book_scraper.extract_text_from_pdf(start_page=START_PAGE)
 
     # Clean the extracted text
     cleaned_text = book_scraper.clean_text(pdf_text)
