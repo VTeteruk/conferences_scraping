@@ -14,7 +14,7 @@ REPLACEMENTS = (
             ("Background", "Introduction"),
             ("\xad", " "),
             ("Introduction", "\nIntroduction"),
-            ("1,2", "\n"),
+            ("1,2", "\n"),  # To ensure proper parsing of session P146.
         )
 
 
